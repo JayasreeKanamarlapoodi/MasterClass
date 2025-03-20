@@ -2,6 +2,33 @@ const client = require("../config/db");
 const bcrypt=require("bcryptjs");
 const {generateToken}=require("../utils/jwt")
 
+
+
+exports.getAllUsers = async (req, res) => {
+    try {
+        // Fetch all users from the database
+        const users = await client.query("SELECT name, mailid, mobile_number FROM users");
+
+        if (users.rowCount === 0) {
+            return res.status(404).json({ 
+                message: "No users found!", 
+                status: 404 
+            });
+        }
+
+        return res.status(200).json({ 
+            message: "Users retrieved successfully!", 
+            status: 200,
+            users: users.rows
+        });
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server error");
+    }
+};
+
+
 exports.validateUsers = async (req, res) => {
     const {mail, mobile,password} = req.body;
     
@@ -33,7 +60,7 @@ exports.validateUsers = async (req, res) => {
                 message:"Login Successful",
                 status:200,
                 user,
-                token
+                token : token
             });
         }
         else

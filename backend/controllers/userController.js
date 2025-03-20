@@ -3,20 +3,10 @@ const bcrypt=require("bcryptjs");
 const {generateToken}=require("../utils/jwt")
 
 exports.validateUsers = async (req, res) => {
-    const {mail, mobile,password} = req.body;
-    
+    const {emailOrmobile,password} = req.body;
     try {
-        let users=null;
-        if(mobile==undefined)
-        {
-            console.log("mail exists");
-         users= await client.query("select mailid, mobile_number, password from users where mailid=$1 ",[mail]);
-        }
-        else
-        {
-            console.log("mobile exists");  
-        users= await client.query("select mailid, mobile_number, password from users where mobile_number=$1 ",[mobile]); 
-        }
+        let users=await client.query("select mailid, mobile_number, password from users where mobile_number=$1 or mailid=$1",[emailOrmobile]); 
+        
         if(users.rowCount==0) 
             {
                 return res.status(404).json({ 
@@ -30,7 +20,7 @@ exports.validateUsers = async (req, res) => {
         {
             const token = generateToken(user);
              res.status(200).json({
-                message:"Login Successful",
+                message:"Login Successfull",
                 status:200,
                 user,
                 token
@@ -39,8 +29,8 @@ exports.validateUsers = async (req, res) => {
         else
         {
             return res.status(401).json({ 
-                message: "Incorrect password! Please try again.", 
-                status: 401 
+                message: "Incorrect Password or Mailid", 
+                status: 401
             });
         }
     } catch (err) {
@@ -72,9 +62,9 @@ exports.createUser = async (req, res) => {
         const user = newUser.rows[0]; // Extract the inserted user details
 
         return res.status(201).json({ 
-            message: "User registered successfully!", 
+            message: "Registered successfully!", 
             status: 201,
-            user: newUser 
+            user: user
         });
         
     } 

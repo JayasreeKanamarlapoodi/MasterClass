@@ -6,6 +6,8 @@ import Register from './Components/auth/register'
 import Login from './Components/auth/login'
 import {BrowserRouter, Route, Routes} from 'react-router-dom'
 import Landing from './Components/Landing pages/landing'
+import Private from './Components/Private'
+import BookingPage from './Components/Landing pages/BookingPage'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -17,7 +19,8 @@ function App() {
         <Routes>
           <Route path='/' element={<Login/>}/>
           <Route path='/login' element={<Login/>}/>
-          <Route path='/landing' element={<Landing/>}/>
+          <Route path='/landing' element={<Private Component={Landing}/>}/>
+          <Route path='/booking' element={<Private Component={BookingPage}/>}/>
           <Route path='/register' element={<Register/>}/>
         </Routes>
       </BrowserRouter>

@@ -31,7 +31,7 @@ const Login = () => {
     if (LoginStatus && Message) {
        // console.log("Successful message");
         setMessage({ type: "success", text:Message });
-        navigate("/landing");
+        navigate("/booking");
        
     } else if (!LoginStatus && Message) {
        // console.log("Error message");

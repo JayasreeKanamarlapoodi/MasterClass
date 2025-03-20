@@ -23,7 +23,7 @@ export const userLoginVerification=(userData)=>async(dispatch)=>
   try {
    response = await requestFromServer.userLoginVerification(userData);
     console.log("response", response);
-    dispatch(loginVerified(response.data.message));
+    dispatch(loginVerified(response.data));
   } catch (error) {
     console.log("Error in posting data:", error);
 

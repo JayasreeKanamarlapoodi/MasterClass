@@ -1,8 +1,47 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import InactivityPopup from "../InactivityPopup";
+import { useDispatch, useSelector } from "react-redux";
+import { onInitalLoad, userRegisteration } from "../../redux/userRedux/RegisterAction";
 
 const Register = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [userStatus, setUserStatus] = useState(false);
+  const [message, setMessage] = useState({ type: "", text: "" });
+  const RegistrationStatus = useSelector((state) => state.user.UserAuth);
+  const Message = useSelector((state) => state.user.Message); 
+
+  useEffect(() => {
+    // console.log("intialLoad",userStatus,message);
+    dispatch(onInitalLoad());
+  }, []);
+
+
+
+useEffect(() => {
+//console.log("2nd useeffect",RegistrationStatus,Message);
+  
+  if (RegistrationStatus) {
+      setUserStatus(true);
+  }
+
+  if (RegistrationStatus && Message) {
+     // console.log("Successful message");
+      setMessage({ type: "success", text:Message });
+      navigate("/login")
+  } else if (!RegistrationStatus && Message) {
+     // console.log("Error message");
+      setMessage({ type: "error", text:Message });
+  }
+}, [RegistrationStatus,Message]);
+
+  
+  
+  
+
+  
+
   const [userData, setUserData] = useState({
     name: "",
     email: "",
@@ -10,8 +49,6 @@ const Register = () => {
     password: "",
     confirmPassword: "",
   });
-
-  const [message, setMessage] = useState({ type: "", text: "" });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,105 +72,26 @@ const Register = () => {
       return;
     }
 
-    // Validate Confirm Password
     if (userData.password !== userData.confirmPassword) {
       setMessage({ type: "error", text: "Passwords do not match!" });
       return;
     }
 
-    // Validate Mobile Number (basic check)
     if (!/^\d{10}$/.test(userData.mobileNumber)) {
       setMessage({ type: "error", text: "Invalid mobile number!" });
       return;
     }
 
-    console.log("Submitting Registration Data:", userData);
+    const requestBody = {
+      name: userData.name,
+      mail: userData.email,
+      mobile: userData.mobileNumber,
+      password: userData.password,
+    };
 
-    try {
-      const requestBody = {
-        name: userData.name,
-        mail: userData.email,
-        mobile: userData.mobileNumber,
-        password: userData.password,
-      };
-
-      const response = await fetch("http://localhost:5001/api/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        console.log(result);
-        setMessage({ type: "success", text: result.message });
-        setUserData({ name: "", email: "", mobileNumber: "", password: "", confirmPassword: "" });
-      } else {
-        throw new Error(result.message || "Registration failed!");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      setMessage({ type: "error", text: "Invalid mobile number!" });
-    }
+    dispatch(userRegisteration(requestBody));
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  
-  //   // Validate Required Fields
-  //   if (!userData.name || !userData.email || !userData.mobileNumber) {
-  //     setMessage({ type: "error", text: "Please enter all the details!" });
-  //     return;
-  //   }
-  
-  //   // Validate Mobile Number (basic check)
-  //   if (!/^\d{10}$/.test(userData.mobileNumber)) {
-  //     setMessage({ type: "error", text: "Invalid mobile number!" });
-  //     return;
-  //   }
-  
-  //   console.log("Submitting Registration Data:", userData);
-  
-  //   const data = {
-  //     name: userData.name,
-  //     email: userData.email,
-  //     mobileNumber: userData.mobileNumber,
-  //   };
-  
-  //   try {
-  //     const response = await fetch(
-  //       "https://script.google.com/macros/s/AKfycbwlIvyWpgPE5bY_l3zrOO-DCvJ-Iu20dnEp-b8AouvjDAvMOWuZ0XuVYa2Ln9NQzSM/exec",
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify(data),
-  //         mode: "cors", // Allow CORS
-  //       }
-  //     );
-  
-  //     console.log("Response Status:", response.status);
-  
-  //     if (!response.ok) {
-  //       const errorText = await response.text();
-  //       throw new Error(`Network response was not ok: ${response.status} - ${errorText}`);
-  //     }
-  
-  //     const responseData = await response.json();
-  //     console.log("Response Data:", responseData);
-  
-  //     setMessage({ type: "success", text: "Registration successful!" });
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //     setMessage({ type: "error", text: "Failed to register. Please try again." });
-  //   }
-  // };
-  
-  
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
       <form className="bg-white p-10 w-full max-w-2xl rounded-lg shadow-lg" onSubmit={handleSubmit}>
@@ -142,7 +100,6 @@ const Register = () => {
         </h2>
 
         <div className="grid grid-cols-1 gap-4">
-          {/* Name */}
           <div>
             <label className="block text-sm font-bold text-gray-700">Name</label>
             <input
@@ -155,7 +112,6 @@ const Register = () => {
             />
           </div>
 
-          {/* Email */}
           <div>
             <label className="block text-sm font-bold text-gray-700">Email</label>
             <input
@@ -168,7 +124,6 @@ const Register = () => {
             />
           </div>
 
-          {/* Mobile Number */}
           <div>
             <label className="block text-sm font-bold text-gray-700">Mobile Number</label>
             <input
@@ -181,7 +136,6 @@ const Register = () => {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label className="block text-sm font-bold text-gray-700">Password</label>
             <input
@@ -194,7 +148,6 @@ const Register = () => {
             />
           </div>
 
-          {/* Confirm Password */}
           <div>
             <label className="block text-sm font-bold text-gray-700">Confirm Password</label>
             <input
@@ -208,14 +161,12 @@ const Register = () => {
           </div>
         </div>
 
-        {/* Error / Success Message */}
         {message.text && (
           <p className={`text-sm mt-4 text-center ${message.type === "error" ? "text-red-500" : "text-green-500"}`}>
             {message.text}
           </p>
         )}
 
-        {/* Submit Button */}
         <button
           type="submit"
           className="mt-6 w-full bg-teal-700 text-white font-semibold py-2 rounded-md hover:bg-teal-800"
@@ -230,6 +181,7 @@ const Register = () => {
           </span>
         </p>
       </form>
+      <InactivityPopup />
     </div>
   );
 };

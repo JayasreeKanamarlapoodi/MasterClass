@@ -1,26 +1,52 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
+import { onInitalLoad, userLoginVerification } from "../../redux/userRedux/RegisterAction";
 
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch=useDispatch();
+  const LoginStatus = useSelector((state) => state.user.loginVerified);
+  const Message = useSelector((state) => state.user.Message); 
+  const [userStatus, setUserStatus] = useState(false);
   const [userData, setUserData] = useState({
     emailOrMobile: "",
     password: "",
   });
-
   const [message, setMessage] = useState({
     type: "",
     text: "",
   });
 
-  useEffect(() => {
-    if (message.text) {
-      const timer = setTimeout(() => {
-        setMessage({ type: "", text: "" });
-      }, 3000);
-      return () => clearTimeout(timer);
+   useEffect(() => {
+      // console.log("intialLoad",userStatus,message);
+      dispatch(onInitalLoad());
+    }, []);
+
+    useEffect(() => {
+      if (LoginStatus) {
+        setUserStatus(true);
     }
-  }, [message.text]);
+  
+    if (LoginStatus && Message) {
+       // console.log("Successful message");
+        setMessage({ type: "success", text:Message });
+        navigate("/landing");
+       
+    } else if (!LoginStatus && Message) {
+       // console.log("Error message");
+        setMessage({ type: "error", text:Message });
+    }
+    }, [LoginStatus,Message]);
+
+  // useEffect(() => {
+  //   if (message.text) {
+  //     const timer = setTimeout(() => {
+  //       setMessage({ type: "", text: "" });
+  //     }, 3000);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [message.text]);
 
   const handleChange = (e) => {
     setUserData({
@@ -40,40 +66,42 @@ const Login = () => {
       return;
     }
 
-    console.log("Submitting Login Data:", userData);
+    //console.log("Submitting Login Data:", userData);
+    
+    const requestBody = {
+      emailOrmobile: userData.emailOrMobile,
+      password: userData.password,
+    };
 
-    try {
-      const requestBody = {
-        mobile: userData.emailOrMobile,
-        mail: userData.emailOrMobile, // Ensure API expects this
-        password: userData.password,
-      };
+    dispatch(userLoginVerification(requestBody));
+    // try {
+      
 
-      const response = await fetch("http://localhost:5001/api/validateusers", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
+    //   const response = await fetch("http://localhost:5001/api/validateusers", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify(requestBody),
+    //   });
 
-      const result = await response.json();
-      console.log("Server Response:", result);
-      if(!response.ok){
-        setMessage({ type: "error", text: result.message});
-      }
+    //   const result = await response.json();
+    //   console.log("Server Response:", result);
+    //   if(!response.ok){
+    //     setMessage({ type: "error", text: result.message});
+    //   }
 
-      if (response.ok) {
-        localStorage.setItem("Cricket-user", JSON.stringify(result));
-        navigate("/landing");
-        setUserData({ emailOrMobile: "", password: "" });
-        setMessage({ type: "success", text: result.message});
-      } else {
-        throw new Error(`Server Error: ${response.status} ${result.message || "Unknown Error"}`);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
+    //   if (response.ok) {
+    //     localStorage.setItem("Cricket-user", JSON.stringify(result));
+    //     navigate("/landing");
+    //     setUserData({ emailOrMobile: "", password: "" });
+    //     setMessage({ type: "success", text: result.message});
+    //   } else {
+    //     throw new Error(`Server Error: ${response.status} ${result.message || "Unknown Error"}`);
+    //   }
+    // } catch (error) {
+    //   console.error("Error:", error);
+    // }
   };
 
   return (
